@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上汽荣威吉林源润店-购车计算器</title>
+    <style>
+        * {margin:0; padding:0; box-sizing:border-box; font-family:"微软雅黑"}
+        body {background:#f5f5f5; padding:15px}
+        .container {max-width:500px; margin:0 auto; background:#fff; border-radius:10px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.1)}
+        
+        /* 头部 */
+        .header {text-align:center; margin-bottom:20px; padding-bottom:15px; border-bottom:2px solid #e60012}
+        .header h1 {font-size:1.4rem; color:#333; margin-bottom:5px}
+        .header p {font-size:0.9rem; color:#666}
+        
+        /* 表单 */
+        .form-group {margin-bottom:18px}
+        .form-group label {display:block; margin-bottom:8px; font-weight:500; color:#333}
+        .form-group input {width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-size:1rem}
+        .radio-group {display:flex; gap:15px; margin-top:5px}
+        .radio-group label {margin:0; cursor:pointer}
+        
+        /* 隐藏模块 */
+        .hide-block {display:none; margin-top:10px; padding:15px; background:#f9f9f9; border-radius:6px}
+        
+        /* 按钮 */
+        .calc-btn {width:100%; padding:12px; background:#e60012; color:#fff; border:none; border-radius:6px; font-size:1.1rem; font-weight:bold; cursor:pointer}
+        .calc-btn:hover {background:#c40010}
+        
+        /* 结果 */
+        .result {margin-top:20px; padding:20px; border:1px solid #eee; border-radius:8px; display:none}
+        .result h2 {font-size:1.2rem; margin-bottom:15px; padding-bottom:10px; border-bottom:1px dashed #ddd}
+        .result-item {display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f0f0}
+        .result-item:last-child {border-bottom:none}
+        .result-label {color:#666}
+        .result-value {font-weight:500}
+        .total-price {margin-top:15px; padding-top:15px; border-top:2px solid #e60012; font-size:1.3rem; color:#e60012; font-weight:bold; text-align:right}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>上汽荣威吉林源润店</h1>
+            <p>购车落地价计算器</p>
+        </div>
+
+        <!-- 车辆类型 -->
+        <div class="form-group">
+            <label>车辆类型</label>
+            <div class="radio-group">
+                <label><input type="radio" name="carType" value="fuel" checked> 燃油车</label>
+                <label><input type="radio" name="carType" value="electric"> 新能源车</label>
+            </div>
+        </div>
+
+        <!-- 基础费用 -->
+        <div class="form-group">
+            <label>车价金额（元）</label>
+            <input type="number" id="carPrice" placeholder="请输入车辆价格" required>
+        </div>
+        <div class="form-group">
+            <label>保险金额（元）</label>
+            <input type="number" id="insurance" placeholder="请输入保险费用" required>
+        </div>
+        <div class="form-group">
+            <label>上牌费（元）</label>
+            <input type="number" id="licenseFee" placeholder="请输入上牌费用" value="500">
+        </div>
+
+        <!-- 补贴选择 -->
+        <div class="form-group">
+            <label>补贴类型（二选一）</label>
+            <div class="radio-group">
+                <label><input type="radio" name="subsidy" value="none" checked> 无</label>
+                <label><input type="radio" name="subsidy" value="national"> 国补</label>
+                <label><input type="radio" name="subsidy" value="provincial"> 省补</label>
+            </div>
+        </div>
+
+        <!-- 市补 -->
+        <div class="form-group">
+            <label>是否有市补</label>
+            <div class="radio-group">
+                <label><input type="radio" name="citySubsidy" value="no" checked> 无</label>
+                <label><input type="radio" name="citySubsidy" value="yes"> 有</label>
+            </div>
+            <div class="hide-block" id="citySubsidyInput">
+                <label>市补金额（元）</label>
+                <input type="number" id="citySubsidyVal" placeholder="请输入市补金额">
+            </div>
+        </div>
+
+        <!-- 贷款选择 -->
+        <div class="form-group">
+            <label>是否贷款</label>
+            <div class="radio-group">
+                <label><input type="radio" name="loan" value="no" checked> 全款</label>
+                <label><input type="radio" name="loan" value="yes"> 贷款</label>
+            </div>
+            <div class="hide-block" id="loanInput">
+                <label>首付比例（%）</label>
+                <input type="number" id="downRatio" value="30" min="10" max="90">
+                <label>贷款期数（月）</label>
+                <input type="number" id="loanTerm" value="36" min="12" max="60">
+                <label>总利息比例（%）</label>
+                <input type="number" id="interestRate" value="4.5" step="0.1">
+                <label>贷款服务费（元）</label>
+                <input type="number" id="loanFee" value="0">
+            </div>
+        </div>
+
+        <!-- 计算按钮 -->
+        <button class="calc-btn" onclick="calc()">计算落地价</button>
+
+        <!-- 结果区域 -->
+        <div class="result" id="result">
+            <h2>购车费用明细</h2>
+            <div class="result-item"><span class="result-label">车价</span><span class="result-value" id="r_carPrice"></span></div>
+            <div class="result-item"><span class="result-label">保险</span><span class="result-value" id="r_insurance"></span></div>
+            <div class="result-item"><span class="result-label">购置税</span><span class="result-value" id="r_tax"></span></div>
+            <div class="result-item"><span class="result-label">上牌费</span><span class="result-value" id="r_license"></span></div>
+            <div class="result-item"><span class="result-label">补贴金额</span><span class="result-value" id="r_subsidy"></span></div>
+            <div class="result-item"><span class="result-label">市补金额</span><span class="result-value" id="r_citySubsidy"></span></div>
+            <div id="r_loan" class="hide-block">
+                <div class="result-item"><span class="result-label">首付金额</span><span class="result-value" id="r_downPay"></span></div>
+                <div class="result-item"><span class="result-label">贷款金额</span><span class="result-value" id="r_loanAmt"></span></div>
+                <div class="result-item"><span class="result-label">月供金额</span><span class="result-value" id="r_monthPay"></span></div>
+                <div class="result-item"><span class="result-label">贷款服务费</span><span class="result-value" id="r_loanFee"></span></div>
+            </div>
+            <div class="total-price">最终落地价：<span id="r_total"></span> 元</div>
+        </div>
+    </div>
+
+    <script>
+        // 显示/隐藏市补输入
+        document.querySelectorAll('input[name="citySubsidy"]').forEach(r => {
+            r.onchange = () => document.getElementById('citySubsidyInput').style.display = r.value === 'yes' ? 'block' : 'none';
+        });
+
+        // 显示/隐藏贷款输入
+        document.querySelectorAll('input[name="loan"]').forEach(r => {
+            r.onchange = () => document.getElementById('loanInput').style.display = r.value === 'yes' ? 'block' : 'none';
+        });
+
+        // 计算核心逻辑
+        function calc() {
+            // 获取基础数据
+            const carType = document.querySelector('input[name="carType"]:checked').value;
+            const carPrice = +document.getElementById('carPrice').value || 0;
+            const insurance = +document.getElementById('insurance').value || 0;
+            const licenseFee = +document.getElementById('licenseFee').value || 0;
+            const subsidyType = document.querySelector('input[name="subsidy"]:checked').value;
+            const hasCitySubsidy = document.querySelector('input[name="citySubsidy"]:checked').value === 'yes';
+            const citySubsidyVal = hasCitySubsidy ? (+document.getElementById('citySubsidyVal').value || 0) : 0;
+            const isLoan = document.querySelector('input[name="loan"]:checked').value === 'yes';
+
+            // 验证必填项
+            if (carPrice <= 0 || insurance <= 0) {
+                alert("请输入有效的车价和保险金额");
+                return;
+            }
+
+            // 计算购置税
+            const tax = carType === 'fuel' ? (carPrice / 11.3) : (carPrice / 11.3 / 2);
+            const taxVal = Math.round(tax);
+
+            // 计算补贴
+            let subsidyVal = 0, subsidyText = '0元';
+            if (subsidyType === 'national') {
+                subsidyVal = carType === 'fuel' ? (carPrice * 0.1) : (carPrice * 0.12);
+                subsidyText = `${Math.round(subsidyVal)}元（国补）`;
+            } else if (subsidyType === 'provincial') {
+                subsidyVal = carType === 'fuel' ? (carPrice * 0.06) : (carPrice * 0.08);
+                subsidyText = `${Math.round(subsidyVal)}元（省补）`;
+            }
+            subsidyVal = Math.round(subsidyVal);
+
+            // 贷款计算
+            let downPay = 0, loanAmt = 0, monthPay = 0, loanFee = 0;
+            if (isLoan) {
+                const downRatio = +document.getElementById('downRatio').value / 100 || 0.3;
+                const loanTerm = +document.getElementById('loanTerm').value || 36;
+                const interestRate = +document.getElementById('interestRate').value / 100 || 0.045;
+                loanFee = +document.getElementById('loanFee').value || 0;
+                
+                downPay = Math.round(carPrice * downRatio);
+                loanAmt = carPrice - downPay;
+                monthPay = Math.round((loanAmt * (1 + interestRate)) / loanTerm * 100) / 100;
+            }
+
+            // 计算总落地价
+            let total = carPrice + insurance + taxVal + licenseFee - subsidyVal - citySubsidyVal;
+            if (isLoan) total += loanFee;
+            total = Math.max(total, 0);
+
+            // 填充结果
+            document.getElementById('r_carPrice').textContent = carPrice.toLocaleString() + '元';
+            document.getElementById('r_insurance').textContent = insurance.toLocaleString() + '元';
+            document.getElementById('r_tax').textContent = taxVal.toLocaleString() + '元';
+            document.getElementById('r_license').textContent = licenseFee.toLocaleString() + '元';
+            document.getElementById('r_subsidy').textContent = subsidyText;
+            document.getElementById('r_citySubsidy').textContent = (citySubsidyVal || '0') + '元';
+            
+            if (isLoan) {
+                document.getElementById('r_loan').style.display = 'block';
+                document.getElementById('r_downPay').textContent = downPay.toLocaleString() + '元';
+                document.getElementById('r_loanAmt').textContent = loanAmt.toLocaleString() + '元';
+                document.getElementById('r_monthPay').textContent = monthPay.toLocaleString() + '元/月';
+                document.getElementById('r_loanFee').textContent = loanFee.toLocaleString() + '元';
+            } else {
+                document.getElementById('r_loan').style.display = 'none';
+            }
+
+            document.getElementById('r_total').textContent = total.toLocaleString();
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
